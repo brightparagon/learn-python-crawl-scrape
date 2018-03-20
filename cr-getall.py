@@ -45,3 +45,36 @@ def download_file(url):
   except:
     print("download fail", url)
     return None
+
+# function: analyze and download html
+def analyze_html(url, root_url):
+  savepath = download_file(url)
+
+  if savepath is None: return
+  if savepath is proc_files: return
+  
+  proc_files[savepath] = True
+  print("analyze_html=", url)
+
+  # extract links
+  html = open(savepath, "r", encoding="utf-8").read()
+  links = enum_links(html, url)
+
+  for link_url in links:
+    # ignore if link is out of root_url
+    if link_url.find(root_url) != 0:
+      if not re.search(r".css$", link_url): continue
+    
+    # html
+    if re.search(r".(html|htm)$", link_url):
+      # analyze html recursively
+      analyze_html(link_url, root_url)
+      continue
+    
+    # other files
+    download_file(link_url)
+
+if __name__ == "__main__":
+  # download everything in the url
+  url = "https://docs.python.org/3.5/library"
+  analyze_html(url, url)
